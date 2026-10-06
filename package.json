@@ -1,0 +1,103 @@
+{
+  "name": "open-cluely",
+  "version": "1.0.0",
+  "description": "Desktop AI copilot for meetings and interviews (Windows + macOS)",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node scripts/run-electron.js",
+    "start:hidden": "node scripts/run-electron.js --start-hidden",
+    "dev": "node scripts/run-electron.js --enable-logging",
+    "test": "node --test test",
+    "build": "node scripts/run-build.js",
+    "build:win": "node scripts/run-build.js --win portable",
+    "build:mac": "node scripts/run-build.js --mac",
+    "build:linux": "node scripts/run-build.js --linux",
+    "make-icon": "node scripts/generate-icon.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^16.3.1",
+    "tesseract.js": "^6.0.1",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^24.13.3",
+    "esbuild": "^0.25.6"
+  },
+  "build": {
+    "appId": "com.opencluely.app",
+    "productName": "Open-Cluely",
+    "afterPack": "scripts/after-pack.js",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*",
+      "!.git/**/*",
+      "!dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": ".env",
+        "to": ".env"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Open-Cluely transcribes your microphone to give live AI assistance.",
+        "NSAudioCaptureUsageDescription": "Open-Cluely captures system audio to transcribe the other side of your call.",
+        "NSScreenCaptureUsageDescription": "Open-Cluely captures screenshots and system audio for AI assistance.",
+        "LSUIElement": true
+      }
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "requestedExecutionLevel": "asInvoker",
+      "verifyUpdateCodeSignature": false
+    },
+    "portable": {
+      "artifactName": "Open-Cluely.exe"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  },
+  "author": "Shubham",
+  "license": "MIT"
+}
