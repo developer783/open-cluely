@@ -8,10 +8,14 @@ const DEFAULT_OLLAMA_MODEL = 'llama3.2';
 
 // Gemini model configuration.
 // The first model in this list is treated as the default model everywhere.
+// gemini-2.5-* models are no longer offered to new API users; Flash-Lite
+// models work on the free tier, Pro models need a paid plan.
 const GEMINI_MODELS = [
-  'gemini-2.5-flash-lite',
-  'gemini-3-flash-preview',
+  'gemini-3.5-flash-lite',
   'gemini-3.1-flash-lite-preview',
+  'gemini-3.5-flash',
+  'gemini-3.8-flash',
+  'gemini-3-flash-preview',
   'gemini-3.1-pro-preview'
 ];
 
