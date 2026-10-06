@@ -55,3 +55,6 @@ logs.txt
 
 #.md files
 # notes.md
+
+# Tesseract OCR language data (downloaded at runtime)
+*.traineddata

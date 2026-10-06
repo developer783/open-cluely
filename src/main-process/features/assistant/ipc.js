@@ -20,6 +20,12 @@ function registerAssistantIpc({
     const message = String(error?.message || '');
     const normalizedMessage = message.toLowerCase();
 
+    // Team server errors already carry a user-facing message; drop the SDK's
+    // "[GoogleGenerativeAI Error]: Error fetching from <url>: [401 ...]" prefix.
+    if (normalizedMessage.includes('team access code') || normalizedMessage.includes('team server')) {
+      return message.replace(/^[\s\S]*\[\d{3}[^\]]*\]\s*/, '');
+    }
+
     if (geminiRuntime.isAllKeysUnavailableError?.(error)) {
       return getAllKeysUnavailableMessage();
     }

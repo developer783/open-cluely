@@ -1,0 +1,20 @@
+# Render Blueprint for the Open-Cluely team server (server/).
+# In Render: New > Blueprint > pick this repo. You'll be asked for the secret values.
+services:
+  - type: web
+    name: open-cluely-team-server
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: "true"
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: GEMINI_API_KEYS
+        sync: false
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
+      - key: ACCESS_CODES
+        sync: false
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "30"

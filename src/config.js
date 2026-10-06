@@ -6,6 +6,12 @@ const DEFAULT_AI_PROVIDER = 'gemini';
 const DEFAULT_OLLAMA_BASE_URL = 'http://localhost:11434';
 const DEFAULT_OLLAMA_MODEL = 'llama3.2';
 
+// Team server: holds the team's API keys so users can use them without seeing
+// them (see server/README.md). Set this to your deployed server URL; each user
+// then only enters the team access code in Settings. Users who paste their own
+// API keys in Settings bypass the team server.
+const DEFAULT_TEAM_SERVER_URL = '';
+
 // Gemini model configuration.
 // The first model in this list is treated as the default model everywhere.
 // gemini-2.5-* models are no longer offered to new API users; Flash-Lite
@@ -170,6 +176,10 @@ function resolveAiProvider(providerName) {
   return isConfiguredAiProvider(providerName) ? providerName : DEFAULT_AI_PROVIDER;
 }
 
+function getDefaultTeamServerUrl() {
+  return DEFAULT_TEAM_SERVER_URL;
+}
+
 function getDefaultOllamaBaseUrl() {
   return DEFAULT_OLLAMA_BASE_URL;
 }
@@ -288,6 +298,7 @@ module.exports = {
   getDefaultAiProvider,
   getDefaultOllamaBaseUrl,
   getDefaultOllamaModel,
+  getDefaultTeamServerUrl,
   isConfiguredAiProvider,
   resolveAiProvider,
   getAssemblyAiSpeechModels,

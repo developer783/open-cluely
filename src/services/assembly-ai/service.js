@@ -6,10 +6,25 @@ const {
 
 const ASSEMBLY_AI_SAMPLE_RATE = 16000;
 
+// Asks the team server for a short-lived AssemblyAI streaming token, so the
+// real AssemblyAI key never leaves the server.
+async function fetchTeamStreamingToken(teamServer) {
+  const response = await fetch(`${teamServer.url}/assemblyai/token`, {
+    method: 'POST',
+    headers: { 'x-access-code': teamServer.accessCode }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.token) {
+    throw new Error(data?.error?.message || `Team server returned ${response.status}`);
+  }
+  return data.token;
+}
+
 function createAssemblyAiService({
   WebSocket,
   desktopCapturer,
   getAssemblyApiKey,
+  getTeamServer = () => null,
   getSpeechModel,
   getGeminiService,
   sendToRenderer
@@ -111,11 +126,12 @@ function createAssemblyAiService({
     }
   }
 
-  function startAssemblyAiStream(source) {
+  async function startAssemblyAiStream(source) {
     const resolvedSource = normalizeSttSource(source);
     const apiKey = getAssemblyApiKey();
+    const teamServer = apiKey ? null : getTeamServer();
 
-    if (!apiKey) {
+    if (!apiKey && !teamServer) {
       console.error('AssemblyAI API key not configured in app settings');
       emitSttDebug({
         source: resolvedSource,
@@ -149,6 +165,10 @@ function createAssemblyAiService({
         speech_model: getSpeechModel()
       });
 
+      if (!apiKey) {
+        queryParams.set('token', await fetchTeamStreamingToken(teamServer));
+      }
+
       const wsUrl = `wss://streaming.assemblyai.com/v3/ws?${queryParams.toString()}`;
 
       console.log(`Connecting to AssemblyAI for source: ${resolvedSource}`);
@@ -169,9 +189,7 @@ function createAssemblyAiService({
         message: `Connecting (${resolvedSource})...`
       });
 
-      const ws = new WebSocket(wsUrl, {
-        headers: { Authorization: apiKey }
-      });
+      const ws = new WebSocket(wsUrl, apiKey ? { headers: { Authorization: apiKey } } : {});
 
       setSourceSocket(resolvedSource, ws);
 

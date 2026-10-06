@@ -26,6 +26,8 @@ class GeminiService {
     this.apiKey = String(apiKey || '').trim();
     this.modelName = resolveGeminiModel(options.modelName);
     this.programmingLanguage = resolveProgrammingLanguage(options.programmingLanguage);
+    // Set when requests go through the team server instead of Google directly.
+    this.requestOptions = options.requestOptions || undefined;
     this.genAI = new GoogleGenerativeAI(this.apiKey);
 
     this.requestQueue = [];
@@ -49,14 +51,14 @@ class GeminiService {
       console.log('Initializing Gemini model:', this.modelName);
       this.model = this.genAI.getGenerativeModel({
         model: this.modelName
-      });
+      }, this.requestOptions);
     } catch (error) {
       const fallbackModel = getDefaultGeminiModel();
       console.warn(`Primary model failed, using fallback ${fallbackModel}:`, error);
       this.modelName = fallbackModel;
       this.model = this.genAI.getGenerativeModel({
         model: fallbackModel
-      });
+      }, this.requestOptions);
     }
   }
 

@@ -223,6 +223,10 @@ const settingOllamaModelSelect = document.getElementById('setting-ollama-model-s
 const fetchOllamaModelsBtn = document.getElementById('fetch-ollama-models');
 const settingProgrammingLanguage = document.getElementById('setting-programming-language');
 const settingAssemblyKey = document.getElementById('setting-assembly-key');
+const settingTeamServerUrl = document.getElementById('setting-team-server-url');
+const settingTeamAccessCode = document.getElementById('setting-team-access-code');
+const toggleTeamAccessCodeVisibilityBtn = document.getElementById('toggle-team-access-code-visibility');
+const teamServerStatus = document.getElementById('team-server-status');
 const toggleAssemblyKeyVisibilityBtn = document.getElementById('toggle-assembly-key-visibility');
 const settingAssemblyModel = document.getElementById('setting-assembly-model');
 const settingWindowOpacity = document.getElementById('setting-window-opacity');
@@ -288,13 +292,19 @@ const settingsPanelManager = createSettingsPanelManager({
     fetchOllamaModelsBtn,
     settingAssemblyKey,
     toggleAssemblyKeyVisibilityBtn,
+    settingTeamServerUrl,
+    settingTeamAccessCode,
+    toggleTeamAccessCodeVisibilityBtn,
+    teamServerStatus,
     settingAssemblyModel,
     settingWindowOpacity,
     settingWindowOpacityValue,
     applySettingsShortcutConfig: (settings) => applySettingsShortcutConfig(settings),
     showFeedback: (message, type) => showFeedback(message, type),
-    onSettingsSaved: (settings) => {
-        applyApiKeyAvailabilityFromSettings(settings);
+    onSettingsSaved: async (settings) => {
+        // Re-read the effective settings: a team access code counts as configured keys.
+        const effectiveSettings = await window.electronAPI.getSettings().catch(() => null);
+        applyApiKeyAvailabilityFromSettings(effectiveSettings && !effectiveSettings.error ? effectiveSettings : settings);
         updateUI();
     }
 });

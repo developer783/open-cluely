@@ -106,7 +106,7 @@ Use Notes to produce a shareable record at the end of a meeting or interview deb
 | Node.js | 20.x LTS (or newer) | 20.x LTS (or newer) |
 | npm | 10+ | 10+ |
 
-You also need **your own API keys** (entered in the in-app Settings panel — nothing is hard-coded):
+You also need either a **team access code** (if your team runs the [team server](./server/README.md)) or **your own API keys**. Both are entered in the in-app Settings panel; nothing is hard-coded:
 
 - **Gemini API key** — free at <https://aistudio.google.com/app/apikey>. You can paste several, comma-separated; the app fails over between them on quota/auth errors.
 - **AssemblyAI API key** — <https://www.assemblyai.com/dashboard/api-keys> (used for live transcription).
@@ -150,8 +150,18 @@ When running from source, the permission is granted to the app you launched it f
 
 ### First launch
 
+**Using the team's keys (team members):**
+
+1. Open **Settings** (⚙) in the app.
+2. Check **Team Server URL** (pre-filled once an admin sets it in `src/config.js`) and enter the **Team Access Code** you were given.
+3. Leave the Gemini and AssemblyAI key fields empty, then click **Save**. Settings will confirm it is using the team's keys.
+
+The real API keys stay on the team server, so you never see them. Setting up the server is covered in [`server/README.md`](./server/README.md).
+
+**Using your own keys:**
+
 1. Open **Settings** in the app.
-2. Paste your Gemini API key(s) and AssemblyAI API key, then save.
+2. Paste your Gemini API key(s) and AssemblyAI API key, then save. Your own keys take priority over the team server.
 3. Pick your Gemini model, speech model, and programming language.
 
 Useful variants:

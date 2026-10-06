@@ -16,7 +16,9 @@ function getDefaultAppState() {
     assemblyAiSpeechModel: null,
     programmingLanguage: null,
     windowOpacityLevel: 10,
-    themePreference: null
+    themePreference: null,
+    teamServerUrl: null,
+    teamAccessCode: null
   };
 }
 
@@ -67,6 +69,14 @@ function sanitizeAppState(state) {
     const windowOpacityLevel = Number.parseInt(String(state.windowOpacityLevel ?? ''), 10);
     if (Number.isFinite(windowOpacityLevel)) {
       nextState.windowOpacityLevel = Math.min(Math.max(windowOpacityLevel, 1), 10);
+    }
+
+    if (typeof state.teamServerUrl === 'string' && state.teamServerUrl.trim()) {
+      nextState.teamServerUrl = state.teamServerUrl.trim().replace(/\/+$/, '');
+    }
+
+    if (typeof state.teamAccessCode === 'string' && state.teamAccessCode.trim()) {
+      nextState.teamAccessCode = state.teamAccessCode.trim();
     }
 
     const themePreference = String(state.themePreference ?? '').trim().toLowerCase();

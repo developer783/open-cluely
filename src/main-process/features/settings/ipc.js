@@ -1,3 +1,6 @@
+const { getDefaultTeamServerUrl } = require('../../../config');
+const { resolveTeamServer } = require('../../shared/team-server');
+
 function registerSettingsIpc({
   ipcMain,
   app,
@@ -21,13 +24,18 @@ function registerSettingsIpc({
     const appState = getAppState();
     const geminiApiKey = typeof appState?.geminiApiKey === 'string' ? appState.geminiApiKey : '';
     const assemblyAiApiKey = typeof appState?.assemblyAiApiKey === 'string' ? appState.assemblyAiApiKey : '';
+    const teamServer = resolveTeamServer(appState);
 
     return {
       aiProvider: geminiRuntime.getActiveAiProvider(),
       geminiApiKey,
       assemblyAiApiKey,
-      hasGeminiApiKeys: geminiApiKey.split(',').map((value) => value.trim()).filter(Boolean).length > 0,
-      hasAssemblyAiApiKey: assemblyAiApiKey.length > 0,
+      hasGeminiApiKeys: geminiApiKey.split(',').map((value) => value.trim()).filter(Boolean).length > 0 || Boolean(teamServer),
+      hasAssemblyAiApiKey: assemblyAiApiKey.length > 0 || Boolean(teamServer),
+      teamServerUrl: appState?.teamServerUrl || getDefaultTeamServerUrl() || '',
+      teamAccessCode: appState?.teamAccessCode || '',
+      usingTeamServerForGemini: geminiRuntime.isUsingTeamServer(),
+      usingTeamServerForTranscription: !assemblyAiApiKey && Boolean(teamServer),
       geminiModel: geminiRuntime.getActiveGeminiModel(),
       geminiModels: geminiRuntime.getGeminiModels(),
       defaultGeminiModel: geminiRuntime.getDefaultGeminiModel(),
@@ -77,6 +85,8 @@ function registerSettingsIpc({
       const nextAiProvider = geminiRuntime.setActiveAiProvider(settings.aiProvider);
       const nextGeminiApiKey = String(settings.geminiApiKey || '').trim();
       const nextAssemblyAiApiKey = String(settings.assemblyAiApiKey || '').trim();
+      const nextTeamServerUrl = String(settings.teamServerUrl || '').trim().replace(/\/+$/, '');
+      const nextTeamAccessCode = String(settings.teamAccessCode || '').trim();
       const nextGeminiModel = geminiRuntime.setActiveGeminiModel(settings.geminiModel);
       const nextOllamaBaseUrl = geminiRuntime.setActiveOllamaBaseUrl(settings.ollamaBaseUrl);
       const nextOllamaModel = geminiRuntime.setActiveOllamaModel(settings.ollamaModel);
@@ -93,6 +103,10 @@ function registerSettingsIpc({
         nodeOptions: appEnvironment.nodeOptions
       });
 
+      geminiRuntime.setTeamServer(resolveTeamServer({
+        teamServerUrl: nextTeamServerUrl,
+        teamAccessCode: nextTeamAccessCode
+      }) || {});
       const keyState = geminiRuntime.setKeys(nextGeminiApiKey, 0);
       const updatedAppState = saveAppState(app, {
         aiProvider: nextAiProvider,
@@ -104,7 +118,11 @@ function registerSettingsIpc({
         ollamaModel: nextOllamaModel,
         assemblyAiSpeechModel: nextAssemblyModel,
         programmingLanguage: nextProgrammingLanguage,
-        windowOpacityLevel: nextWindowOpacityLevel
+        windowOpacityLevel: nextWindowOpacityLevel,
+        // Only store a URL that differs from the built-in default, so a later
+        // default change in src/config.js reaches everyone.
+        teamServerUrl: nextTeamServerUrl && nextTeamServerUrl !== getDefaultTeamServerUrl() ? nextTeamServerUrl : '',
+        teamAccessCode: nextTeamAccessCode
       });
 
       setAppEnvironment(updatedEnvironment);

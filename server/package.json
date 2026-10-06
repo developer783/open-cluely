@@ -1,0 +1,14 @@
+{
+  "name": "open-cluely-team-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Holds the team's Gemini and AssemblyAI keys so Open-Cluely users can use them without seeing them",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

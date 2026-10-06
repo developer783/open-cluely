@@ -28,6 +28,7 @@ const {
 } = require('../services/state/app-state');
 const { createAssistantWindow } = require('../windows/assistant/window');
 const { createSafeSender } = require('./shared/safe-send');
+const { resolveTeamServer } = require('./shared/team-server');
 const { createGeminiRuntime } = require('./features/assistant/gemini-runtime');
 const { createScreenshotManager } = require('./features/assistant/screenshot-manager');
 const { registerAssistantIpc } = require('./features/assistant/ipc');
@@ -155,6 +156,7 @@ async function startApplication() {
     WebSocket,
     desktopCapturer,
     getAssemblyApiKey: () => appState?.assemblyAiApiKey || '',
+    getTeamServer: () => resolveTeamServer(appState),
     getSpeechModel: () => activeAssemblyAiSpeechModel,
     getGeminiService: () => geminiRuntime.getService(),
     sendToRenderer
@@ -186,6 +188,7 @@ async function startApplication() {
     appState = loadAppState(app);
 
     const activeAiProvider = geminiRuntime.setActiveAiProvider(appState.aiProvider);
+    geminiRuntime.setTeamServer(resolveTeamServer(appState) || {});
     const keyState = geminiRuntime.setKeys(
       normalizeGeminiApiKeys(appState?.geminiApiKey),
       appState.geminiApiKeyIndex

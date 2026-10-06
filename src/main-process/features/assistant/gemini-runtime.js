@@ -36,6 +36,10 @@ function normalizeGeminiApiKeys(keys) {
   return nextKeys;
 }
 
+// Stand-in "key" meaning: send Gemini requests through the team server, which
+// adds the real key server-side. Used only when the user has no key of their own.
+const TEAM_SERVER_KEY = 'team-server';
+
 function createGeminiRuntime() {
   let geminiService = null;
   let ollamaService = null;
@@ -45,6 +49,8 @@ function createGeminiRuntime() {
   let activeOllamaBaseUrl = getDefaultOllamaBaseUrl();
   let activeOllamaModel = getDefaultOllamaModel();
   let geminiApiKeys = [];
+  let userApiKeys = [];
+  let teamServer = null;
   let activeApiKeyIndex = 0;
   let activeKeyIndexChangeHandler = null;
 
@@ -97,6 +103,34 @@ function createGeminiRuntime() {
     return geminiApiKeys.length > 0;
   }
 
+  function getEffectiveApiKeys() {
+    if (userApiKeys.length > 0) return [...userApiKeys];
+    return teamServer ? [TEAM_SERVER_KEY] : [];
+  }
+
+  function isUsingTeamServer() {
+    return userApiKeys.length === 0 && Boolean(teamServer);
+  }
+
+  function setTeamServer({ url, accessCode } = {}) {
+    const normalizedUrl = String(url || '').trim().replace(/\/+$/, '');
+    const normalizedCode = String(accessCode || '').trim();
+    teamServer = normalizedUrl && normalizedCode ? { url: normalizedUrl, accessCode: normalizedCode } : null;
+    geminiApiKeys = getEffectiveApiKeys();
+    setActiveApiKeyIndex(activeApiKeyIndex, { notify: false });
+    // Force a rebuild so the service picks up the new routing.
+    geminiService = null;
+    return isUsingTeamServer();
+  }
+
+  function getTeamServerRequestOptions() {
+    if (!teamServer) return undefined;
+    return {
+      baseUrl: `${teamServer.url}/gemini`,
+      customHeaders: { 'x-access-code': teamServer.accessCode }
+    };
+  }
+
   // Ollama runs locally without keys; Gemini needs at least one key.
   function isProviderReady() {
     return activeAiProvider === 'ollama' || hasApiKeys();
@@ -123,6 +157,12 @@ function createGeminiRuntime() {
         activeProgrammingLanguage
       );
 
+      const requestOptions = apiKey === TEAM_SERVER_KEY ? getTeamServerRequestOptions() : undefined;
+      if (geminiService && (requestOptions || geminiService.requestOptions)) {
+        // Switching to or from the team server needs a fresh SDK client.
+        geminiService = null;
+      }
+
       if (geminiService) {
         geminiService.updateConfiguration({
           apiKey,
@@ -132,7 +172,8 @@ function createGeminiRuntime() {
       } else {
         geminiService = new GeminiService(apiKey, {
           modelName: activeGeminiModel,
-          programmingLanguage: activeProgrammingLanguage
+          programmingLanguage: activeProgrammingLanguage,
+          requestOptions
         });
       }
 
@@ -146,7 +187,8 @@ function createGeminiRuntime() {
   }
 
   function setKeys(apiKeys, preferredIndex = 0) {
-    geminiApiKeys = normalizeGeminiApiKeys(apiKeys);
+    userApiKeys = normalizeGeminiApiKeys(apiKeys);
+    geminiApiKeys = getEffectiveApiKeys();
 
     if (!hasApiKeys()) {
       setActiveApiKeyIndex(0);
@@ -281,6 +323,19 @@ function createGeminiRuntime() {
 
     if (!hasApiKeys()) {
       throw new Error('No Gemini API key configured. Add it in Settings.');
+    }
+
+    // The team server does its own key failover; surface its errors as-is.
+    if (isUsingTeamServer()) {
+      if (!geminiService) {
+        initializeGeminiService(TEAM_SERVER_KEY, activeGeminiModel, activeProgrammingLanguage);
+      }
+      return await operation(geminiService, {
+        activeApiKeyIndex: 0,
+        activeApiKey: '',
+        attempt: 1,
+        totalKeys: 1
+      });
     }
 
     const totalKeys = geminiApiKeys.length;
@@ -439,6 +494,8 @@ function createGeminiRuntime() {
     getApiKeys,
     hasApiKeys,
     isProviderReady,
+    isUsingTeamServer,
+    setTeamServer,
     getActiveApiKey,
     getActiveApiKeyIndex: () => activeApiKeyIndex,
     switchToNextKey,

@@ -221,6 +221,26 @@
       </div>
       <div class="settings-body">
         <div class="settings-group">
+          <label class="settings-label" for="setting-team-server-url">Team Server URL</label>
+          <input type="text" id="setting-team-server-url" class="settings-input" placeholder="https://your-team-server.example.com" />
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="setting-team-access-code">Team Access Code</label>
+          <div class="settings-input-row">
+            <input type="password" id="setting-team-access-code" class="settings-input" placeholder="Enter the access code from your team admin..." />
+            <button
+              type="button"
+              id="toggle-team-access-code-visibility"
+              class="settings-input-toggle"
+              aria-label="Show team access code"
+              aria-pressed="false"
+            >
+              Show
+            </button>
+          </div>
+          <div id="team-server-status" class="settings-helper-text">With a team server and access code, the team's keys are used automatically. Leave the API key fields below empty to use them.</div>
+        </div>
+        <div class="settings-group">
           <label class="settings-label">AI Provider</label>
           <select id="setting-ai-provider" class="settings-input">
             <option value="gemini">Gemini</option>

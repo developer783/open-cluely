@@ -17,6 +17,10 @@ export function createSettingsPanelManager({
     fetchOllamaModelsBtn,
     settingAssemblyKey,
     toggleAssemblyKeyVisibilityBtn,
+    settingTeamServerUrl,
+    settingTeamAccessCode,
+    toggleTeamAccessCodeVisibilityBtn,
+    teamServerStatus,
     settingAssemblyModel,
     settingWindowOpacity,
     settingWindowOpacityValue,
@@ -266,6 +270,17 @@ export function createSettingsPanelManager({
                     settings.programmingLanguage || settings.defaultProgrammingLanguage
                 );
                 if (settingAssemblyKey) settingAssemblyKey.value = settings.assemblyAiApiKey || '';
+                if (settingTeamServerUrl) settingTeamServerUrl.value = settings.teamServerUrl || '';
+                if (settingTeamAccessCode) settingTeamAccessCode.value = settings.teamAccessCode || '';
+                if (teamServerStatus) {
+                    const usingFor = [
+                        settings.usingTeamServerForGemini ? 'AI answers' : '',
+                        settings.usingTeamServerForTranscription ? 'transcription' : ''
+                    ].filter(Boolean);
+                    teamServerStatus.textContent = usingFor.length > 0
+                        ? `Using the team's keys for ${usingFor.join(' and ')}. Your own keys below, if entered, take priority.`
+                        : 'With a team server and access code, the team\'s keys are used automatically. Leave the API key fields below empty to use them.';
+                }
                 populateAssemblyAiSpeechModelOptions(
                     settings.assemblyAiSpeechModels,
                     settings.assemblyAiSpeechModel || settings.defaultAssemblyAiSpeechModel
@@ -281,6 +296,7 @@ export function createSettingsPanelManager({
 
         setApiKeyFieldVisibility(settingGeminiKey, toggleGeminiKeyVisibilityBtn, 'Gemini', false);
         setApiKeyFieldVisibility(settingAssemblyKey, toggleAssemblyKeyVisibilityBtn, 'AssemblyAI', false);
+        setApiKeyFieldVisibility(settingTeamAccessCode, toggleTeamAccessCodeVisibilityBtn, 'team access code', false);
 
         settingsPanel.classList.remove('hidden');
     }
@@ -316,6 +332,8 @@ export function createSettingsPanelManager({
                 aiProvider,
                 geminiApiKey: settingGeminiKey ? settingGeminiKey.value.trim() : '',
                 assemblyAiApiKey: settingAssemblyKey ? settingAssemblyKey.value.trim() : '',
+                teamServerUrl: settingTeamServerUrl ? settingTeamServerUrl.value.trim() : '',
+                teamAccessCode: settingTeamAccessCode ? settingTeamAccessCode.value.trim() : '',
                 geminiModel: settingGeminiModel ? settingGeminiModel.value : '',
                 ollamaBaseUrl: settingOllamaBaseUrl ? settingOllamaBaseUrl.value.trim() : '',
                 ollamaModel: settingOllamaModel ? settingOllamaModel.value.trim() : '',
@@ -344,6 +362,7 @@ export function createSettingsPanelManager({
 
     bindApiKeyVisibilityToggle(settingGeminiKey, toggleGeminiKeyVisibilityBtn, 'Gemini');
     bindApiKeyVisibilityToggle(settingAssemblyKey, toggleAssemblyKeyVisibilityBtn, 'AssemblyAI');
+    bindApiKeyVisibilityToggle(settingTeamAccessCode, toggleTeamAccessCodeVisibilityBtn, 'team access code');
     bindProviderToggle();
     bindFetchOllamaModels();
 
